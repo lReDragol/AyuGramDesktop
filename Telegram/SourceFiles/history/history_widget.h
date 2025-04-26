@@ -8,6 +8,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #pragma once
 
 #include "history/view/controls/history_view_compose_media_edit_manager.h"
+#include <QAudioRecorder>
+#include <QAudioEncoderSettings>
+#include <QStandardPaths>
+#include <QFile>
 #include "history/view/history_view_corner_buttons.h"
 #include "history/history_drag_area.h"
 #include "history/history_item_helpers.h"
@@ -324,6 +328,8 @@ private:
 	using TabbedPanel = ChatHelpers::TabbedPanel;
 	using TabbedSelector = ChatHelpers::TabbedSelector;
 	using VoiceToSend = HistoryView::Controls::VoiceToSend;
+    // Audio recording
+    std::unique_ptr<QAudioRecorder> _currentRecorder;
 	enum ScrollChangeType {
 		ScrollChangeNone,
 

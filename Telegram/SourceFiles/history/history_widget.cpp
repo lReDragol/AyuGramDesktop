@@ -6,6 +6,10 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "history/history_widget.h"
+#include <QAudioRecorder>
+#include <QAudioEncoderSettings>
+#include <QStandardPaths>
+#include <QFile>
 
 #include "api/api_editing.h"
 #include "api/api_bot.h"
@@ -9504,4 +9508,33 @@ HistoryWidget::~HistoryWidget() {
 		session().data().itemVisibilitiesUpdated();
 	}
 	setTabbedPanel(nullptr);
+}
+
+
+// ----- Voice recording methods -----
+void HistoryWidget::startRecording() {
+    const QString path = QStandardPaths::writableLocation(
+        QStandardPaths::TempLocation) + "/voice.ogg";
+    auto recorder = new QAudioRecorder(this);
+    QAudioEncoderSettings settings;
+    settings.setCodec("audio/opus");
+    settings.setSampleRate(48000);
+    settings.setBitRate(64000);
+    settings.setChannelCount(1);
+    recorder->setEncodingSettings(settings, QVideoEncoderSettings(), "ogg");
+    recorder->setOutputLocation(QUrl::fromLocalFile(path));
+    recorder->record();
+    _currentRecorder.reset(recorder);
+}
+
+void HistoryWidget::stopRecording() {
+    if (!_currentRecorder) return;
+    _currentRecorder->stop();
+    const QString filePath = _currentRecorder->outputLocation().toLocalFile();
+    QFile file(filePath);
+    if (file.open(QIODevice::ReadOnly)) {
+        uploadFile(file.readAll(), SendMediaType::Voice);
+    }
+    file.remove();
+    _currentRecorder.reset();
 }
